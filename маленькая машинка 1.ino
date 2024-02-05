@@ -14,9 +14,12 @@ int in4 = 4;
 
 // 2. подключите пины драйвера HC-SR04 к цифровым пинам Arduino
 
-int trigPin = 8; // назначаем имя для Pin8
-int echoPin = 9; // назначаем имя для Pin9
- 
+int trigPin = 9; // назначаем имя для Pin8
+int echoPin = 8; // назначаем имя для Pin9
+
+
+int duration, cm; // назначаем переменную "cm" и "duration" для показаний датчика
+
 
 
 void setup()
@@ -32,46 +35,41 @@ void setup()
   pinMode(trigPin, OUTPUT); // назначаем trigPin (Pin8), как выход
   pinMode(echoPin, INPUT); // назначаем echoPin (Pin9), как вход
 
+  Serial.begin (9600);
+
 }
+
+
+
+
 
 void loop() {
 
-// скрипт теста систем
+// скрипт ультразвукового датчика
 
+distance ();
+// скрипт теста систем движения
 test ();
 
+  }
 
-
-// СКРИПТ ДЛЯ УЛЬТРАЗВУКОВОГО ДАЛЬНОМЕРА HC-SR04
-
-
-  int duration, cm; // назначаем переменную "cm" и "duration" для показаний датчика
-  digitalWrite(trigPin, LOW); // изначально датчик не посылает сигнал
-  delayMicroseconds(2); // ставим задержку в 2 ммикросекунд
-
-  digitalWrite(trigPin, HIGH); // посылаем сигнал
-  delayMicroseconds(10); // ставим задержку в 10 микросекунд
-  digitalWrite(trigPin, LOW); // выключаем сигнал
-
-  duration = pulseIn(echoPin, HIGH); // включаем прием сигнала
-
-  cm = duration / 58; // вычисляем расстояние в сантиметрах
-
-  Serial.print(cm); // выводим расстояние в сантиметрах
-  Serial.println(" cm");
-
-
-}
-
-
+// **** МОДУЛИ
 
 
 // ТЕСТ ВСЕХ СИСТЕМ
 
 void test() {
 
+// СКРИПТ ОСТАНОВКИ ДВИГАТЕЛЕЙ ПРИ МАЛОЙ ДИСТАНЦИИ
+
+
+
+if(cm<70)
+stop();
+else
+{
     forward();
-    delay(2000); // пауза 2сек
+    delay(2000);
     stop();
     delay(6000);
 
@@ -99,6 +97,7 @@ void test() {
     delay(2000);
     stop();
     delay(6000);
+  }
 
 }
 
@@ -159,4 +158,23 @@ void stop() {
   digitalWrite(in2, LOW);
   digitalWrite(in3, LOW);
   digitalWrite(in4, LOW);
+  }
+
+
+// СКРИПТ ДЛЯ УЛЬТРАЗВУКОВОГО ДАЛЬНОМЕРА HC-SR04
+
+void distance () { 
+  digitalWrite(trigPin, LOW); // изначально датчик не посылает сигнал
+  delayMicroseconds(5); // ставим задержку в 2 ммикросекунд
+
+  digitalWrite(trigPin, HIGH); // посылаем сигнал
+  delayMicroseconds(20); // ставим задержку в 10 микросекунд
+  digitalWrite(trigPin, LOW); // выключаем сигнал
+
+  duration = pulseIn(echoPin, HIGH); // включаем прием сигнала
+
+  cm = duration / 58; // вычисляем расстояние в сантиметрах
+
+  Serial.print(cm); // выводим расстояние в сантиметрах
+  Serial.println(" cm");
   }
