@@ -1,4 +1,7 @@
-// Область объявления переменных и номеров подключаемых PIN'ов
+// **** ОБЛАСТЬ ПОДКЛЮЧЕНИЯ БИБЛИОТЕК ****
+#include <Servo.h> 
+
+// **** Область объявления ПЕРЕМЕННЫХ и номеров подключаемых PIN'ов ****
 
 // 1. подключите пины драйвера L298N к цифровым пинам Arduino
 
@@ -12,14 +15,18 @@ int enB = 2;
 int in3 = 3;
 int in4 = 4;
 
+// сервопривод
+int servoPin = 10;
+
+
 // 2. подключите пины драйвера HC-SR04 к цифровым пинам Arduino
 
 int trigPin = 9; // назначаем имя для Pin8
 int echoPin = 8; // назначаем имя для Pin9
 
-
 int duration, cm; // назначаем переменную "cm" и "duration" для показаний датчика
 
+// **** ИНИЦИАЛИЗАЦИЯ ****
 
 
 void setup()
@@ -49,11 +56,15 @@ void loop() {
 
 distance ();
 // скрипт теста систем движения
-test ();
+test1 ();
 
   }
 
-// **** МОДУЛИ
+
+
+
+
+// **** МОДУЛИ ****
 
 
 // ТЕСТ ВСЕХ СИСТЕМ
@@ -61,8 +72,6 @@ test ();
 void test() {
 
 // СКРИПТ ОСТАНОВКИ ДВИГАТЕЛЕЙ ПРИ МАЛОЙ ДИСТАНЦИИ
-
-
 
 if(cm<70)
 stop();
@@ -103,6 +112,43 @@ else
 
 
 
+void test1() {
+
+// СКРИПТ ОСТАНОВКИ ДВИГАТЕЛЕЙ ПРИ МАЛОЙ ДИСТАНЦИИ
+
+    forward();
+    delay(2000);
+    stop();
+    delay(6000);
+
+    left();
+    delay(2000);
+    stop();
+    delay(6000);
+
+    right();
+    delay(2000);
+    stop();
+    delay(6000);
+
+    back();
+    delay(2000);
+    stop();
+    delay(6000);
+
+    left();
+    delay(2000);
+    stop();
+    delay(6000);
+
+    right();
+    delay(2000);
+    stop();
+    delay(6000);
+  }
+
+
+
 // движение вперед
 void forward() { 
     // выставляем 100% мощность на моторе А - 255 из 255
@@ -113,6 +159,7 @@ void forward() {
     digitalWrite( in2, LOW );
     digitalWrite( in3, LOW );
     digitalWrite( in4, HIGH );
+        Serial.println("Движение вперед");
 }
 
 // движение назад
@@ -125,7 +172,9 @@ void back() {
     digitalWrite( in2, HIGH );
     digitalWrite( in3, HIGH );
     digitalWrite( in4, LOW );
+        Serial.println("Движение назад");
 }
+
 
 
 // движение вправо
@@ -138,6 +187,7 @@ void left() {
     digitalWrite( in2, HIGH );
     digitalWrite( in3, LOW );
     digitalWrite( in4, HIGH );
+        Serial.println("Поворот вправо");
 }
 
 // движение вправо
@@ -150,6 +200,7 @@ void right() {
     digitalWrite( in2, LOW );
     digitalWrite( in3, HIGH );
     digitalWrite( in4, LOW );
+        Serial.println("Поворот влево");
 }
 
 // остановка
@@ -158,6 +209,7 @@ void stop() {
   digitalWrite(in2, LOW);
   digitalWrite(in3, LOW);
   digitalWrite(in4, LOW);
+      Serial.println("Остановка");
   }
 
 
