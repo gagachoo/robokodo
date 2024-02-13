@@ -1,5 +1,5 @@
 // **** ОБЛАСТЬ ПОДКЛЮЧЕНИЯ БИБЛИОТЕК ****
-#include <Servo.h> 
+#include <Servo.h>
 
 // **** Область объявления ПЕРЕМЕННЫХ и номеров подключаемых PIN'ов ****
 
@@ -19,7 +19,7 @@ int in4 = 4;
 int servoPin = 10;
 
 // звук
-int tonePin = 3;
+int tonePin = 11;
 
 
 // 2. подключите пины драйвера HC-SR04 к цифровым пинам Arduino
@@ -34,6 +34,10 @@ int duration, cm; // назначаем переменную "cm" и "duration" 
 
 void setup()
 {
+// приветствие
+  sound();
+  test_system();
+ 
   // инициализируем все пины для управления двигателями как outputs
   pinMode(enA, OUTPUT);  
   pinMode(enB, OUTPUT);  
@@ -57,10 +61,9 @@ void loop() {
 
 // скрипт ультразвукового датчика
 distance ();
-// скрипт теста систем
-test_system ();
+}
+// теста систем
 
-  }
 
 
 
@@ -79,8 +82,17 @@ if(cm<70)
 stop();
 else
 {
-    forward();
-    delay(2000);
+  for(int i=0;i<50;i++)
+  {
+    distance ();
+    while(cm<70)
+    {
+      stop();
+      distance ();
+    }
+    forward();      
+    }
+    
     stop();
     delay(6000);
 
@@ -94,20 +106,6 @@ else
     stop();
     delay(6000);
 
-    back();
-    delay(2000);
-    stop();
-    delay(6000);
-
-    left();
-    delay(2000);
-    stop();
-    delay(6000);
-
-    right();
-    delay(2000);
-    stop();
-    delay(6000);
   }
 
 }
@@ -121,12 +119,12 @@ void test_system() {
     left();
     delay(2000);
     stop();
-    delay(6000);
+    delay(200);
 
     right();
     delay(2000);
     stop();
-    delay(6000);
+    delay(200);
 
 
   }
@@ -215,16 +213,36 @@ void distance () {
   Serial.println(" cm");
   }
 
+int timer=0;
 
  void sound () {
-    tone(tonePin, 261.63, 200);
-    delay(200);
-    tone(tonePin, 293.66, 200);
-    delay(200);
-    tone(tonePin, 329.63, 200);
-    delay(200);
-    tone(tonePin, 349.23, 200);
-    delay(400);
-    tone(tonePin, 550.00, 200);
-    delay(200);
+    
+    if (millis()-timer>200) {
+      
+        tone(tonePin, 261.63, 200);
+      timer=millis();
     }
+    
+    if (millis()-timer>200) {
+      
+      tone(tonePin, 293.66, 200);
+      timer=millis();
+    }
+
+    if (millis()-timer>200) {
+      
+      tone(tonePin, 329.63, 200);
+      timer=millis();
+    }
+    if (millis()-timer>200) {
+      
+      tone(tonePin, 349.23, 200);
+      timer=millis();
+    }
+if (millis()-timer>200) {
+      
+      tone(tonePin, 550.00, 200);
+      timer=millis();
+    }
+
+ }
