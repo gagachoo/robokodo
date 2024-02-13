@@ -1,68 +1,230 @@
-#define PIN_RECV  13 // Вывод, к которому подключен ИК-приёмник
-#define PIN_IN1   7   // Вывод управления правого колеса
-#define PIN_IN2   6   // Вывод управления правого колеса
-#define PIN_IN3   5   // Вывод управления левого колеса
-#define PIN_IN4   4   // Вывод управления левого колеса
-#define PIN_ENA   9   // Вывод управления скоростью правого колеса
-#define PIN_ENB   3   // Вывод управления скоростью левого колеса
-#define SPEED 255     // Скорость бобо-машинки (0-255)
-// Коды с пульта управления (необходимо вставить свои!!!)
-#define BUTTON_FORWARD  0xB4B4E21D // Код кнопки ВПЕРЁД
-#define BUTTON_LEFT     0xB4B49A65 // Код кнопки ВЛЕВО
-#define BUTTON_RIGHT    0xB4B45AA5 // Код кнопки ВПРАВО
-#define BUTTON_BACK     0xB4B412ED // Код кнопки НАЗАД
+// **** ОБЛАСТЬ ПОДКЛЮЧЕНИЯ БИБЛИОТЕК ****
+#include <Servo.h> 
 
-#include <IRremote.h> // Библиотека для работы с ИК-приёмником
-IRrecv irrecv(PIN_RECV); // Создание объекта работы с ИК-приёмником
-decode_results results; // Переменная для хранения результата декодирования
+// **** Область объявления ПЕРЕМЕННЫХ и номеров подключаемых PIN'ов ****
 
-void setup() {
-  irrecv.enableIRIn();  // Инициализация ИК-приёмника
-  // Настройка на выход всех управляющих пинов Arduino
-  pinMode(PIN_IN1, OUTPUT);
-  pinMode(PIN_IN2, OUTPUT);
-  pinMode(PIN_IN3, OUTPUT);
-  pinMode(PIN_IN4, OUTPUT);
-  pinMode(PIN_ENA, OUTPUT);
-  pinMode(PIN_ENB, OUTPUT);
-  // Остановка моторов
-  digitalWrite(PIN_IN1, LOW);
-  digitalWrite(PIN_IN2, LOW);
-  digitalWrite(PIN_IN3, LOW);
-  digitalWrite(PIN_IN4, LOW);
-  analogWrite(PIN_ENA, SPEED);
-  analogWrite(PIN_ENB, SPEED);
+// 1. подключите пины драйвера L298N к цифровым пинам Arduino
+
+// первый двигатель
+int enA = 7;
+int in1 = 6;
+int in2 = 5;
+
+// второй двигатель
+int enB = 2;
+int in3 = 3;
+int in4 = 4;
+
+// сервопривод
+int servoPin = 10;
+
+// звук
+int tonePin = 3;
+
+
+// 2. подключите пины драйвера HC-SR04 к цифровым пинам Arduino
+
+int trigPin = 9; // назначаем имя для Pin8
+int echoPin = 8; // назначаем имя для Pin9
+
+int duration, cm; // назначаем переменную "cm" и "duration" для показаний датчика
+
+// **** ИНИЦИАЛИЗАЦИЯ ****
+
+
+void setup()
+{
+  // инициализируем все пины для управления двигателями как outputs
+  pinMode(enA, OUTPUT);  
+  pinMode(enB, OUTPUT);  
+  pinMode(in1, OUTPUT);  
+  pinMode(in2, OUTPUT);  
+  pinMode(in3, OUTPUT);  
+  pinMode(in4, OUTPUT);
+
+  pinMode(trigPin, OUTPUT); // назначаем trigPin (Pin8), как выход
+  pinMode(echoPin, INPUT); // назначаем echoPin (Pin9), как вход
+
+  Serial.begin (9600);
+
 }
+
+
+
+
+
 void loop() {
-  // Ждём поступления сигнала с пульта ДУ
-  if (irrecv.decode(&results)) {
-    // Анализируем полученный результат
-    switch(results.value) {
-        case BUTTON_FORWARD: // Движение ВПЕРЁД
-          digitalWrite(PIN_IN1, HIGH);
-          digitalWrite(PIN_IN2, LOW);
-          digitalWrite(PIN_IN3, LOW);
-          digitalWrite(PIN_IN2, HIGH);
-        break;
-        case BUTTON_LEFT: // Поворот ВЛЕВО
-          digitalWrite(PIN_IN1, HIGH);
-          digitalWrite(PIN_IN2, LOW);
-          digitalWrite(PIN_IN3, LOW);
-          digitalWrite(PIN_IN2, LOW);
-        break;
-        case BUTTON_RIGHT: // Поворот ВПРАВО
-          digitalWrite(PIN_IN1, LOW);
-          digitalWrite(PIN_IN2, LOW);
-          digitalWrite(PIN_IN3, LOW);
-          digitalWrite(PIN_IN2, HIGH);
-        break;
-        case BUTTON_BACK: // Движение НАЗАД
-          digitalWrite(PIN_IN1, LOW);
-          digitalWrite(PIN_IN2, HIGH);
-          digitalWrite(PIN_IN3, HIGH);
-          digitalWrite(PIN_IN2, LOW);
-        break;
-    }
-    irrecv.resume();
+
+// скрипт ультразвукового датчика
+distance ();
+// скрипт теста систем
+test_system ();
+
   }
+
+
+
+
+
+// **** МОДУЛИ ****
+
+
+// ТЕСТ ВСЕХ СИСТЕМ
+
+void test() {
+
+// СКРИПТ ОСТАНОВКИ ДВИГАТЕЛЕЙ ПРИ МАЛОЙ ДИСТАНЦИИ
+
+if(cm<70)
+stop();
+else
+{
+    forward();
+    delay(2000);
+    stop();
+    delay(6000);
+
+    left();
+    delay(2000);
+    stop();
+    delay(6000);
+
+    right();
+    delay(2000);
+    stop();
+    delay(6000);
+
+    back();
+    delay(2000);
+    stop();
+    delay(6000);
+
+    left();
+    delay(2000);
+    stop();
+    delay(6000);
+
+    right();
+    delay(2000);
+    stop();
+    delay(6000);
+  }
+
 }
+
+
+
+void test_system() {
+
+// ТЕСТ СИСТЕМЫ
+
+    left();
+    delay(2000);
+    stop();
+    delay(6000);
+
+    right();
+    delay(2000);
+    stop();
+    delay(6000);
+
+
+  }
+
+
+
+// движение вперед
+void forward() { 
+    // выставляем 100% мощность на моторе А - 255 из 255
+    analogWrite( enA, 255 );
+    analogWrite( enB, 255 );
+    // режим мотора
+    digitalWrite( in1, HIGH );
+    digitalWrite( in2, LOW );
+    digitalWrite( in3, LOW );
+    digitalWrite( in4, HIGH );
+        Serial.println("Движение вперед");
+}
+
+// движение назад
+void back() { 
+    // выставляем мощность на мотора А - 150 из 255
+    analogWrite( enA, 255 );
+    analogWrite( enB, 255 );
+    // режим мотора
+    digitalWrite( in1, LOW );
+    digitalWrite( in2, HIGH );
+    digitalWrite( in3, HIGH );
+    digitalWrite( in4, LOW );
+        Serial.println("Движение назад");
+}
+
+
+
+// движение вправо
+void left() { 
+    // выставляем мощность на мотора А - 150 из 255
+    analogWrite( enA, 150 );
+    analogWrite( enB, 150 );
+    // режим мотора
+    digitalWrite( in1, LOW );
+    digitalWrite( in2, HIGH );
+    digitalWrite( in3, LOW );
+    digitalWrite( in4, HIGH );
+        Serial.println("Поворот вправо");
+}
+
+// движение вправо
+void right() { 
+    // выставляем мощность на мотора А - 150 из 255
+    analogWrite( enA, 150 );
+    analogWrite( enB, 150 );
+    // режим мотора
+    digitalWrite( in1, HIGH );
+    digitalWrite( in2, LOW );
+    digitalWrite( in3, HIGH );
+    digitalWrite( in4, LOW );
+        Serial.println("Поворот влево");
+}
+
+// остановка
+void stop() {
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, LOW);
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, LOW);
+      Serial.println("Остановка");
+  }
+
+
+// СКРИПТ ДЛЯ УЛЬТРАЗВУКОВОГО ДАЛЬНОМЕРА HC-SR04
+
+void distance () { 
+  digitalWrite(trigPin, LOW); // изначально датчик не посылает сигнал
+  delayMicroseconds(5); // ставим задержку в 2 ммикросекунд
+
+  digitalWrite(trigPin, HIGH); // посылаем сигнал
+  delayMicroseconds(20); // ставим задержку в 10 микросекунд
+  digitalWrite(trigPin, LOW); // выключаем сигнал
+
+  duration = pulseIn(echoPin, HIGH); // включаем прием сигнала
+
+  cm = duration / 58; // вычисляем расстояние в сантиметрах
+
+  Serial.print(cm); // выводим расстояние в сантиметрах
+  Serial.println(" cm");
+  }
+
+
+ void sound () {
+    tone(tonePin, 261.63, 200);
+    delay(200);
+    tone(tonePin, 293.66, 200);
+    delay(200);
+    tone(tonePin, 329.63, 200);
+    delay(200);
+    tone(tonePin, 349.23, 200);
+    delay(400);
+    tone(tonePin, 550.00, 200);
+    delay(200);
+    }
