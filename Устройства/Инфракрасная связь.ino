@@ -79,4 +79,9 @@ void light() {
     }    
     irrecv.resume(); // принимаем следующую команду
 }
+
+if (results.value==0xBA45FF00){
+digitalWrite( 13, HIGH );
+            Serial.println("Включился светодиод"); // выводим на монитор порта сообщение о включении}
+
 }
