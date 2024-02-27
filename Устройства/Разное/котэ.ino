@@ -14,6 +14,7 @@ LedControl lclm=LedControl(0,2,1,1);
 
 void setup()
 {
+  pinMode(13, OUTPUT);
   pinMode(trigPin, OUTPUT); // назначаем trigPin (Pin8), как выход
   pinMode(echoPin, INPUT); // назначаем echoPin (Pin9), как вход
   // Serial.begin (9600);
@@ -114,4 +115,15 @@ delay (400);
 delay(400);
 
 sound();
+light();
+}
+
+
+void light () {
+  digitalWrite(13, HIGH); // Включение синего светодиода
+    Serial.println("Включился светодиод"); // выводим на монитор порта сообщение о включении
+  delay(1000);            // Задержка 1 сек.
+  digitalWrite(13, LOW);  // Выключение синего светодиода
+    Serial.println("Выключился светодиод"); // выводим на монитор порта сообщение о выключении
+  delay(1000);            // Задержка 1 сек.
 }
