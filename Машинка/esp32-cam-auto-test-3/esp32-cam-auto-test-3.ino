@@ -25,8 +25,8 @@
 #include "esp_http_server.h"
 
 // Replace with your network credentials
-const char* ssid = "RT-WiFi-B9DE";
-const char* password = "UfX2Ceb5";
+const char* ssid = "huPhone";
+const char* password = "44445678Wi";
 
 #define PART_BOUNDARY "123456789000000000000987654321"
 
@@ -140,6 +140,9 @@ const char* password = "UfX2Ceb5";
 #define MOTOR_2_PIN_1    13
 #define MOTOR_2_PIN_2    12
 
+#define LIGHT  4
+int light = 0;
+
 static const char* _STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;
 static const char* _STREAM_BOUNDARY = "\r\n--" PART_BOUNDARY "\r\n";
 static const char* _STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n";
@@ -188,6 +191,7 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
       <tr><td colspan="3" align="center"><button class="button" onmousedown="toggleCheckbox('forward');" ontouchstart="toggleCheckbox('forward');" onmouseup="toggleCheckbox('stop');" ontouchend="toggleCheckbox('stop');">Forward</button></td></tr>
       <tr><td align="center"><button class="button" onmousedown="toggleCheckbox('left');" ontouchstart="toggleCheckbox('left');" onmouseup="toggleCheckbox('stop');" ontouchend="toggleCheckbox('stop');">Left</button></td><td align="center"><button class="button" onmousedown="toggleCheckbox('stop');" ontouchstart="toggleCheckbox('stop');">Stop</button></td><td align="center"><button class="button" onmousedown="toggleCheckbox('right');" ontouchstart="toggleCheckbox('right');" onmouseup="toggleCheckbox('stop');" ontouchend="toggleCheckbox('stop');">Right</button></td></tr>
       <tr><td colspan="3" align="center"><button class="button" onmousedown="toggleCheckbox('backward');" ontouchstart="toggleCheckbox('backward');" onmouseup="toggleCheckbox('stop');" ontouchend="toggleCheckbox('stop');">Backward</button></td></tr>                   
+      <tr><td align="center"><button class="button" onmousedown="toggleCheckbox('light');" ontouchstart="toggleCheckbox('light');" onmouseup="toggleCheckbox('lightedit');" ontouchend="toggleCheckbox('lightedit');">Light Up</button></td><td align="center"><button class="button" onmousedown="toggleCheckbox('stoplight');" ontouchstart="toggleCheckbox('stoplight');">Light Down</button></td></tr>                   
     </table>
    <script>
    function toggleCheckbox(x) {
@@ -333,6 +337,23 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     digitalWrite(MOTOR_2_PIN_1, 0);
     digitalWrite(MOTOR_2_PIN_2, 0);
   }
+  else if(!strcmp(variable, "light")) {
+    Serial.println("Light");
+    digitalWrite(LIGHT, 255);
+  }
+  // else if(!strcmp(variable, "lightedit")) {
+  //   Serial.println("Light Edit");
+  //   if (light==255) {
+  //     light = 0;
+  //   } else {
+  //     light = 255;
+  //   }
+  //   digitalWrite(LIGHT, light);
+  // }
+  else if(!strcmp(variable, "stoplight")) {
+    Serial.println("stopLight");
+    digitalWrite(LIGHT, 0);
+  }
   else {
     res = -1;
   }
@@ -385,6 +406,7 @@ void setup() {
   pinMode(MOTOR_1_PIN_2, OUTPUT);
   pinMode(MOTOR_2_PIN_1, OUTPUT);
   pinMode(MOTOR_2_PIN_2, OUTPUT);
+  pinMode(LIGHT, OUTPUT);
   
   Serial.begin(115200);
   Serial.setDebugOutput(false);
@@ -421,23 +443,29 @@ void setup() {
     config.fb_count = 1;
   }
   
-  // Camera init
-  esp_err_t err = esp_camera_init(&config);
-  if (err != ESP_OK) {
-    Serial.printf("Camera init failed with error 0x%x", err);
-    return;
-  }
+  // Camera init 
+  // блок инициализации камеры
+  // esp_err_t err = esp_camera_init(&config);
+  // if (err != ESP_OK) {
+  //   Serial.printf("Camera init failed with error 0x%x", err);
+  //   return;
+  // }
+  
   // Wi-Fi connection
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
+  // WiFi.begin(ssid, password);
+  // while (WiFi.status() != WL_CONNECTED) {
+  //   delay(500);
+  //   Serial.print(".");
+  // }
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP(ssid, password);
+
   Serial.println("");
   Serial.println("WiFi connected");
   
   Serial.print("Camera Stream Ready! Go to: http://");
-  Serial.println(WiFi.localIP());
+  // Serial.println(WiFi.localIP());
+  Serial.println(WiFi.softAPIP());
   
   // Start streaming web server
   startCameraServer();
@@ -446,3 +474,4 @@ void setup() {
 void loop() {
   
 }
+
