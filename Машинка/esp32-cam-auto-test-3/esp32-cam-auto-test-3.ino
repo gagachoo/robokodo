@@ -443,13 +443,13 @@ void setup() {
     config.fb_count = 1;
   }
   
-  // Camera init 
-  // блок инициализации камеры
-  // esp_err_t err = esp_camera_init(&config);
-  // if (err != ESP_OK) {
-  //   Serial.printf("Camera init failed with error 0x%x", err);
-  //   return;
-  // }
+  Camera init 
+  блок инициализации камеры
+  esp_err_t err = esp_camera_init(&config);
+  if (err != ESP_OK) {
+    Serial.printf("Camera init failed with error 0x%x", err);
+    return;
+  }
   
   // Wi-Fi connection
   // WiFi.begin(ssid, password);
