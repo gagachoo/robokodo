@@ -1,18 +1,5 @@
-/*********
-  Rui Santos
-  Complete instructions at https://RandomNerdTutorials.com/esp32-cam-projects-ebook/
-  
-  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.
-  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-
-
-
-на компе классно работает и видео норм даёт
-  https://randomnerdtutorials.com/esp32-cam-car-robot-web-server/
-
-
-*********/
+// *** ПОДКЛЮЧАЕМ БИБЛИОТЕКИ ***
 
 #include "esp_camera.h"
 #include <WiFi.h>
@@ -24,17 +11,22 @@
 #include "soc/rtc_cntl_reg.h"    // disable brownout problems
 #include "esp_http_server.h"
 
-// Replace with your network credentials
+// *** ИМЯ И ПАРОЛЬ WIFI СЕТИ ***
 const char* ssid = "huPhone";
 const char* password = "44445678Wi";
 
 #define PART_BOUNDARY "123456789000000000000987654321"
+
+
+// *** ВЫБИРАЕМ МОДЕЛЬ КАМЕРЫ ***
 
 #define CAMERA_MODEL_AI_THINKER
 //#define CAMERA_MODEL_M5STACK_PSRAM
 //#define CAMERA_MODEL_M5STACK_WITHOUT_PSRAM
 //#define CAMERA_MODEL_M5STACK_PSRAM_B
 //#define CAMERA_MODEL_WROVER_KIT
+
+// *** НАСТРОЙКИ КОНКРЕТНОЙ КАМЕРЫ ***
 
 #if defined(CAMERA_MODEL_WROVER_KIT)
   #define PWDN_GPIO_NUM    -1
@@ -131,14 +123,19 @@ const char* password = "44445678Wi";
   #define HREF_GPIO_NUM     26
   #define PCLK_GPIO_NUM     21
 
+
 #else
   #error "Camera model not selected"
 #endif
+
+// Пины подключения драйвера двигателей 
 
 #define MOTOR_1_PIN_1    14
 #define MOTOR_1_PIN_2    15
 #define MOTOR_2_PIN_1    13
 #define MOTOR_2_PIN_2    12
+
+// Включение-отключение светодиода
 
 #define LIGHT  4
 int light = 0;
@@ -474,4 +471,3 @@ void setup() {
 void loop() {
   
 }
-
