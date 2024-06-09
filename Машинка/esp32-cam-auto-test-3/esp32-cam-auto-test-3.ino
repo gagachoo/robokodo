@@ -128,14 +128,14 @@ const char* password = "44445678Wi";
   #error "Camera model not selected"
 #endif
 
-// Пины подключения драйвера двигателей 
+// *** ПИНЫ ПОДКЛЮЧЕНИЯ ДРАЙВЕРА ДВИГАТЕЛЕЙ ***
 
 #define MOTOR_1_PIN_1    14
 #define MOTOR_1_PIN_2    15
 #define MOTOR_2_PIN_1    13
 #define MOTOR_2_PIN_2    12
 
-// Включение-отключение светодиода
+// *** СВЕТОДИОД ***
 
 #define LIGHT  4
 int light = 0;
@@ -147,6 +147,8 @@ static const char* _STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %
 httpd_handle_t camera_httpd = NULL;
 httpd_handle_t stream_httpd = NULL;
 
+
+//  *** WEB ИНТЕРФЕЙС УПРАВЛЕНИЯ ЧЕРЕЗ БРАУЗЕР ***
 static const char PROGMEM INDEX_HTML[] = R"rawliteral(
 <html>
   <head>
@@ -298,7 +300,11 @@ static esp_err_t cmd_handler(httpd_req_t *req){
 
   sensor_t * s = esp_camera_sensor_get();
   int res = 0;
+
+// *** ФУНКЦИИ УПРАВЛЕНИЯ ДВИГАТЕЛЯМИ ***
   
+// *** ДВИЖЕНИЕ ВПЕРЕД ***
+
   if(!strcmp(variable, "forward")) {
     Serial.println("Forward");
     digitalWrite(MOTOR_1_PIN_1, 1);
@@ -306,6 +312,9 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     digitalWrite(MOTOR_2_PIN_1, 1);
     digitalWrite(MOTOR_2_PIN_2, 0);
   }
+
+  // *** ДВИЖЕНИЕ ВЛЕВО ***
+
   else if(!strcmp(variable, "left")) {
     Serial.println("Left");
     digitalWrite(MOTOR_1_PIN_1, 0);
@@ -313,6 +322,9 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     digitalWrite(MOTOR_2_PIN_1, 1);
     digitalWrite(MOTOR_2_PIN_2, 0);
   }
+
+// *** ДВИЖЕИЕ ВПРАВО ***
+
   else if(!strcmp(variable, "right")) {
     Serial.println("Right");
     digitalWrite(MOTOR_1_PIN_1, 1);
@@ -320,6 +332,9 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     digitalWrite(MOTOR_2_PIN_1, 0);
     digitalWrite(MOTOR_2_PIN_2, 1);
   }
+
+// *** ДВИЖЕНИЕ НАЗАД ***
+
   else if(!strcmp(variable, "backward")) {
     Serial.println("Backward");
     digitalWrite(MOTOR_1_PIN_1, 0);
@@ -327,6 +342,9 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     digitalWrite(MOTOR_2_PIN_1, 0);
     digitalWrite(MOTOR_2_PIN_2, 1);
   }
+
+// *** ОСТАНОВКА ***
+
   else if(!strcmp(variable, "stop")) {
     Serial.println("Stop");
     digitalWrite(MOTOR_1_PIN_1, 0);
@@ -334,6 +352,9 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     digitalWrite(MOTOR_2_PIN_1, 0);
     digitalWrite(MOTOR_2_PIN_2, 0);
   }
+
+// *** СВЕТОДИОД ***
+
   else if(!strcmp(variable, "light")) {
     Serial.println("Light");
     digitalWrite(LIGHT, 255);
