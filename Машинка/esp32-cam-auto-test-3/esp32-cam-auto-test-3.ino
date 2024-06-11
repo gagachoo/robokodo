@@ -323,7 +323,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     digitalWrite(MOTOR_2_PIN_2, 0);
   }
 
-// *** ДВИЖЕИЕ ВПРАВО ***
+// *** ДВИЖЕНИЕ ВПРАВО ***
 
   else if(!strcmp(variable, "right")) {
     Serial.println("Right");
@@ -357,7 +357,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
 
   else if(!strcmp(variable, "light")) {
     Serial.println("Light");
-    digitalWrite(LIGHT, 255);
+    digitalWrite(LIGHT, 100);
   }
   // else if(!strcmp(variable, "lightedit")) {
   //   Serial.println("Light Edit");
@@ -461,12 +461,12 @@ void setup() {
     config.fb_count = 1;
   }
   
-  Camera init 
-  блок инициализации камеры
+  // Camera init 
+  // блок инициализации камеры
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
     Serial.printf("Camera init failed with error 0x%x", err);
-    return;
+    // return;
   }
   
   // Wi-Fi connection
