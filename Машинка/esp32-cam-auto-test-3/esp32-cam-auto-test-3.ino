@@ -1,5 +1,6 @@
 
 // *** ПОДКЛЮЧАЕМ БИБЛИОТЕКИ ***
+// Библиотека — это код, который можно переиспользовать в разных программах. 
 
 #include "esp_camera.h"
 #include <WiFi.h>
@@ -11,14 +12,15 @@
 #include "soc/rtc_cntl_reg.h"    // disable brownout problems
 #include "esp_http_server.h"
 
+
+// ## ОБЬЯВЛЕНИЕ КОНСТАНТ И ПЕРЕМЕННЫХ ##
 // *** ИМЯ И ПАРОЛЬ WIFI СЕТИ ***
 const char* ssid = "huPhone";
 const char* password = "44445678Wi";
 
 #define PART_BOUNDARY "123456789000000000000987654321"
 
-
-// *** ВЫБИРАЕМ МОДЕЛЬ КАМЕРЫ ***
+// *** ЗАДАЁМ МОДЕЛЬ КАМЕРЫ ***
 
 #define CAMERA_MODEL_AI_THINKER
 //#define CAMERA_MODEL_M5STACK_PSRAM
@@ -204,11 +206,13 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
 </html>
 )rawliteral";
 
+// Функция возвращает html для передачив браузер
 static esp_err_t index_handler(httpd_req_t *req){
   httpd_resp_set_type(req, "text/html");
   return httpd_resp_send(req, (const char *)INDEX_HTML, strlen(INDEX_HTML));
 }
 
+// 
 static esp_err_t stream_handler(httpd_req_t *req){
   camera_fb_t * fb = NULL;
   esp_err_t res = ESP_OK;
@@ -384,6 +388,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
   return httpd_resp_send(req, NULL, 0);
 }
 
+// запуск потока видео
 void startCameraServer(){
   httpd_config_t config = HTTPD_DEFAULT_CONFIG();
   config.server_port = 80;
