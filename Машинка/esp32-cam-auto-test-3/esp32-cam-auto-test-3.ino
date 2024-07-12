@@ -140,7 +140,7 @@ const char* password = "44445678Wi";
 // *** СВЕТОДИОД ***
 
 #define LIGHT  4
-int light = 0;
+int camera_up = false; //была ли инициализирована камера
 
 static const char* _STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;
 static const char* _STREAM_BOUNDARY = "\r\n--" PART_BOUNDARY "\r\n";
@@ -183,30 +183,45 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
         max-width: 100% ;
         height: auto ; 
       }
+      .switch {position: relative; display: inline-block; width: 120px; height: 68px} 
+      .switch input {display: none}
+      .slider {position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; border-radius: 34px}
+      .slider:before {position: absolute; content: ""; height: 52px; width: 52px; left: 8px; bottom: 8px; background-color: #fff; -webkit-transition: .4s; transition: .4s; border-radius: 68px}
+      input:checked+.slider {background-color: #2196F3}
+      input:checked+.slider:before {-webkit-transform: translateX(52px); -ms-transform: translateX(52px); transform: translateX(52px)}
     </style>
   </head>
   <body>
     <h1>ESP32-CAM Robot</h1>
     <img src="" id="photo" >
     <table>
-      <tr><td colspan="3" align="center"><button class="button" onmousedown="toggleCheckbox('forward');" ontouchstart="toggleCheckbox('forward');" onmouseup="toggleCheckbox('stop');" ontouchend="toggleCheckbox('stop');">Forward</button></td></tr>
-      <tr><td align="center"><button class="button" onmousedown="toggleCheckbox('left');" ontouchstart="toggleCheckbox('left');" onmouseup="toggleCheckbox('stop');" ontouchend="toggleCheckbox('stop');">Left</button></td><td align="center"><button class="button" onmousedown="toggleCheckbox('stop');" ontouchstart="toggleCheckbox('stop');">Stop</button></td><td align="center"><button class="button" onmousedown="toggleCheckbox('right');" ontouchstart="toggleCheckbox('right');" onmouseup="toggleCheckbox('stop');" ontouchend="toggleCheckbox('stop');">Right</button></td></tr>
+      <tr><td colspan="3" align="center"><button class="button" onmousedown="toggleCheckbox('forward');" ontouchstart="toggleCheckbox('forwardtouch');" onmouseup="toggleCheckbox('stop');" ontouchend="toggleCheckbox('stoptouch');">Forward</button></td></tr>
+      <tr><td align="center"><button class="button" onmousedown="toggleCheckbox('left');" ontouchstart="toggleCheckbox('left');" onmouseup="toggleCheckbox('stop');" ontouchend="toggleCheckbox('stop');">Left</button></td>
+          <td align="center"><button class="button" onmousedown="toggleCheckbox('stop');" ontouchstart="toggleCheckbox('stop');">Stop</button></td>
+          <td align="center"><button class="button" onmousedown="toggleCheckbox('right');" ontouchstart="toggleCheckbox('right');" onmouseup="toggleCheckbox('stop');" ontouchend="toggleCheckbox('stop');">Right</button></td></tr>
       <tr><td colspan="3" align="center"><button class="button" onmousedown="toggleCheckbox('backward');" ontouchstart="toggleCheckbox('backward');" onmouseup="toggleCheckbox('stop');" ontouchend="toggleCheckbox('stop');">Backward</button></td></tr>                   
-      <tr><td align="center"><button class="button" onmousedown="toggleCheckbox('light');" ontouchstart="toggleCheckbox('light');" onmouseup="toggleCheckbox('lightedit');" ontouchend="toggleCheckbox('lightedit');">Light Up</button></td><td align="center"><button class="button" onmousedown="toggleCheckbox('stoplight');" ontouchstart="toggleCheckbox('stoplight');">Light Down</button></td></tr>                   
+      <tr><td align="center"><button class="button" onmousedown="toggleCheckbox('camera_up');" ontouchstart="toggleCheckbox('camera_up');">Camera Up</button></td><td align="center"><button class="button" onmousedown="toggleCheckbox('camera_down');" ontouchstart="toggleCheckbox('camera_down');">Camera Down</button></td></tr>
+      <tr><td align="center"><label>Light</label><label class="switch"><input type="checkbox" onchange="toggleCheckboxCheck(this)" id="output checked"><span class="slider"></span></label></td></tr>
     </table>
-   <script>
-   function toggleCheckbox(x) {
-     var xhr = new XMLHttpRequest();
-     xhr.open("GET", "/action?go=" + x, true);
-     xhr.send();
-   }
-   window.onload = document.getElementById("photo").src = window.location.href.slice(0, -1) + ":81/stream";
+  <script>
+    function toggleCheckbox(x) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", "/action?go=" + x, true);
+      xhr.send();
+    }
+    function toggleCheckboxCheck(element) {
+      var xhr = new XMLHttpRequest();
+      if (element.checked){ xhr.open("GET", "/action?go=light", true); }
+      else { xhr.open("GET", "/action?go=stoplight", true); }
+      xhr.send();
+    }
+    window.onload = document.getElementById("photo").src = window.location.href.slice(0, -1) + ":81/stream";
   </script>
   </body>
 </html>
 )rawliteral";
 
-// Функция возвращает html для передачив браузер
+// Функция возвращает html для передачи в браузер
 static esp_err_t index_handler(httpd_req_t *req){
   httpd_resp_set_type(req, "text/html");
   return httpd_resp_send(req, (const char *)INDEX_HTML, strlen(INDEX_HTML));
@@ -226,49 +241,59 @@ static esp_err_t stream_handler(httpd_req_t *req){
   }
 
   while(true){
-    fb = esp_camera_fb_get();
-    if (!fb) {
-      Serial.println("Camera capture failed");
-      res = ESP_FAIL;
-    } else {
-      if(fb->width > 400){
-        if(fb->format != PIXFORMAT_JPEG){
-          bool jpeg_converted = frame2jpg(fb, 80, &_jpg_buf, &_jpg_buf_len);
-          esp_camera_fb_return(fb);
-          fb = NULL;
-          if(!jpeg_converted){
-            Serial.println("JPEG compression failed");
-            res = ESP_FAIL;
+    if (camera_up){
+      Serial.println("камера показывает");
+      fb = esp_camera_fb_get();
+      if (!fb) {
+        Serial.println("Camera capture failed - what");
+        res = ESP_FAIL;
+      } else {
+        if(fb->width > 400){
+          if(fb->format != PIXFORMAT_JPEG){
+            bool jpeg_converted = frame2jpg(fb, 80, &_jpg_buf, &_jpg_buf_len);
+            esp_camera_fb_return(fb);
+            fb = NULL;
+            if(!jpeg_converted){
+              Serial.println("JPEG compression failed");
+              res = ESP_FAIL;
+            }
+          } else {
+            _jpg_buf_len = fb->len;
+            _jpg_buf = fb->buf;
           }
-        } else {
-          _jpg_buf_len = fb->len;
-          _jpg_buf = fb->buf;
         }
       }
+      if(res == ESP_OK){
+        size_t hlen = snprintf((char *)part_buf, 64, _STREAM_PART, _jpg_buf_len);
+        res = httpd_resp_send_chunk(req, (const char *)part_buf, hlen);
+      }
+      if(res == ESP_OK){
+        res = httpd_resp_send_chunk(req, (const char *)_jpg_buf, _jpg_buf_len);
+      }
+      if(res == ESP_OK){
+        res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY));
+      }
+      if(fb){
+        esp_camera_fb_return(fb);
+        fb = NULL;
+        _jpg_buf = NULL;
+      } else if(_jpg_buf){
+        free(_jpg_buf);
+        _jpg_buf = NULL;
+      }
+      if(res != ESP_OK) {
+        Serial.println("ОШИБКА ИДЁТ");
+        if (!camera_up){
+          break;
+        } else {
+          Serial.println("присвоили ОК");
+          res = ESP_OK;
+        }
+      }
+      //Serial.printf("MJPG: %uB\n",(uint32_t)(_jpg_buf_len));
     }
-    if(res == ESP_OK){
-      size_t hlen = snprintf((char *)part_buf, 64, _STREAM_PART, _jpg_buf_len);
-      res = httpd_resp_send_chunk(req, (const char *)part_buf, hlen);
-    }
-    if(res == ESP_OK){
-      res = httpd_resp_send_chunk(req, (const char *)_jpg_buf, _jpg_buf_len);
-    }
-    if(res == ESP_OK){
-      res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY));
-    }
-    if(fb){
-      esp_camera_fb_return(fb);
-      fb = NULL;
-      _jpg_buf = NULL;
-    } else if(_jpg_buf){
-      free(_jpg_buf);
-      _jpg_buf = NULL;
-    }
-    if(res != ESP_OK){
-      break;
-    }
-    //Serial.printf("MJPG: %uB\n",(uint32_t)(_jpg_buf_len));
   }
+  Serial.println("Вышли из цикла камеры !!!!!!!!!!!!!!!!!!!");
   return res;
 }
 
@@ -305,11 +330,19 @@ static esp_err_t cmd_handler(httpd_req_t *req){
   sensor_t * s = esp_camera_sensor_get();
   int res = 0;
 
-// *** ФУНКЦИИ УПРАВЛЕНИЯ ДВИГАТЕЛЯМИ ***
+  // *** ФУНКЦИИ УПРАВЛЕНИЯ ДВИГАТЕЛЯМИ ***
   
-// *** ДВИЖЕНИЕ ВПЕРЕД ***
+  // *** ДВИЖЕНИЕ ВПЕРЕД ***
 
   if(!strcmp(variable, "forward")) {
+    Serial.println("Forward");
+    digitalWrite(MOTOR_1_PIN_1, 1);
+    digitalWrite(MOTOR_1_PIN_2, 0);
+    digitalWrite(MOTOR_2_PIN_1, 1);
+    digitalWrite(MOTOR_2_PIN_2, 0);
+  }
+  
+  if(!strcmp(variable, "forwardtouch")) {
     Serial.println("Forward");
     digitalWrite(MOTOR_1_PIN_1, 1);
     digitalWrite(MOTOR_1_PIN_2, 0);
@@ -327,7 +360,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     digitalWrite(MOTOR_2_PIN_2, 0);
   }
 
-// *** ДВИЖЕНИЕ ВПРАВО ***
+  // *** ДВИЖЕНИЕ ВПРАВО ***
 
   else if(!strcmp(variable, "right")) {
     Serial.println("Right");
@@ -337,7 +370,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     digitalWrite(MOTOR_2_PIN_2, 1);
   }
 
-// *** ДВИЖЕНИЕ НАЗАД ***
+  // *** ДВИЖЕНИЕ НАЗАД ***
 
   else if(!strcmp(variable, "backward")) {
     Serial.println("Backward");
@@ -347,7 +380,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     digitalWrite(MOTOR_2_PIN_2, 1);
   }
 
-// *** ОСТАНОВКА ***
+  // *** ОСТАНОВКА ***
 
   else if(!strcmp(variable, "stop")) {
     Serial.println("Stop");
@@ -357,25 +390,36 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     digitalWrite(MOTOR_2_PIN_2, 0);
   }
 
-// *** СВЕТОДИОД ***
+  else if(!strcmp(variable, "stoptouch")) {
+    Serial.println("Stop");
+    digitalWrite(MOTOR_1_PIN_1, 0);
+    digitalWrite(MOTOR_1_PIN_2, 0);
+    digitalWrite(MOTOR_2_PIN_1, 0);
+    digitalWrite(MOTOR_2_PIN_2, 0);
+  }
+  // *** СВЕТОДИОД ***
 
   else if(!strcmp(variable, "light")) {
     Serial.println("Light");
     digitalWrite(LIGHT, 100);
   }
-  // else if(!strcmp(variable, "lightedit")) {
-  //   Serial.println("Light Edit");
-  //   if (light==255) {
-  //     light = 0;
-  //   } else {
-  //     light = 255;
-  //   }
-  //   digitalWrite(LIGHT, light);
-  // }
   else if(!strcmp(variable, "stoplight")) {
     Serial.println("stopLight");
     digitalWrite(LIGHT, 0);
   }
+
+  // *** КАМЕРА ***
+  else if(!strcmp(variable, "camera_down")) {
+    camera_up = false;
+    Serial.println("camera_down");
+    // stop_webserver(stream_httpd);
+    esp_camera_deinit();
+  }
+  else if(!strcmp(variable, "camera_up")) {
+    Serial.println("camera_up");
+    camera_init();
+  }
+
   else {
     res = -1;
   }
@@ -388,7 +432,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
   return httpd_resp_send(req, NULL, 0);
 }
 
-// запуск потока видео
+// функция запуска вебсервера
 void startCameraServer(){
   httpd_config_t config = HTTPD_DEFAULT_CONFIG();
   config.server_port = 80;
@@ -411,29 +455,22 @@ void startCameraServer(){
     .handler   = stream_handler,
     .user_ctx  = NULL
   };
+  // запуск http сервера
   if (httpd_start(&camera_httpd, &config) == ESP_OK) {
     httpd_register_uri_handler(camera_httpd, &index_uri);
     httpd_register_uri_handler(camera_httpd, &cmd_uri);
   }
   config.server_port += 1;
   config.ctrl_port += 1;
+  // запуск потока видео
   if (httpd_start(&stream_httpd, &config) == ESP_OK) {
     httpd_register_uri_handler(stream_httpd, &stream_uri);
   }
 }
 
-void setup() {
-  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
-  
-  pinMode(MOTOR_1_PIN_1, OUTPUT);
-  pinMode(MOTOR_1_PIN_2, OUTPUT);
-  pinMode(MOTOR_2_PIN_1, OUTPUT);
-  pinMode(MOTOR_2_PIN_2, OUTPUT);
-  pinMode(LIGHT, OUTPUT);
-  
-  Serial.begin(115200);
-  Serial.setDebugOutput(false);
-  
+
+void camera_init(){
+  if (camera_up) return;
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
@@ -472,7 +509,25 @@ void setup() {
   if (err != ESP_OK) {
     Serial.printf("Camera init failed with error 0x%x", err);
     // return;
+  } else {
+    camera_up = true;
+    Serial.printf("Camera good init");
   }
+}
+
+void setup() {
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
+  
+  pinMode(MOTOR_1_PIN_1, OUTPUT);
+  pinMode(MOTOR_1_PIN_2, OUTPUT);
+  pinMode(MOTOR_2_PIN_1, OUTPUT);
+  pinMode(MOTOR_2_PIN_2, OUTPUT);
+  pinMode(LIGHT, OUTPUT);
+  
+  Serial.begin(115200);
+  Serial.setDebugOutput(false);
+  
+  camera_init();
   
   // Wi-Fi connection
   // WiFi.begin(ssid, password);
@@ -487,9 +542,9 @@ void setup() {
   Serial.println("WiFi connected");
   
   Serial.print("Camera Stream Ready! Go to: http://");
-  // Serial.println(WiFi.localIP());
+  // Serial.println(WiFi.localIP()); 
   Serial.println(WiFi.softAPIP());
-  
+
   // Start streaming web server
   startCameraServer();
 }
