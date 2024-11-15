@@ -200,7 +200,6 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
           <td align="center"><button class="button" onmousedown="toggleCheckbox('stop');" ontouchstart="toggleCheckbox('stop');">Stop</button></td>
           <td align="center"><button class="button" onmousedown="toggleCheckbox('right');" ontouchstart="toggleCheckbox('right');" onmouseup="toggleCheckbox('stop');" ontouchend="toggleCheckbox('stop');">Right</button></td></tr>
       <tr><td colspan="3" align="center"><button class="button" onmousedown="toggleCheckbox('backward');" ontouchstart="toggleCheckbox('backward');" onmouseup="toggleCheckbox('stop');" ontouchend="toggleCheckbox('stop');">Backward</button></td></tr>                   
-      <tr><td align="center"><button class="button" onmousedown="toggleCheckbox('camera_up');" ontouchstart="toggleCheckbox('camera_up');">Camera Up</button></td><td align="center"><button class="button" onmousedown="toggleCheckbox('camera_down');" ontouchstart="toggleCheckbox('camera_down');">Camera Down</button></td></tr>
       <tr><td align="center"><label>Light</label><label class="switch"><input type="checkbox" onchange="toggleCheckboxCheck(this)" id="output checked"><span class="slider"></span></label></td></tr>
     </table>
   <script>
@@ -220,6 +219,7 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
   </body>
 </html>
 )rawliteral";
+      // <tr><td align="center"><button class="button" onmousedown="toggleCheckbox('camera_up');" ontouchstart="toggleCheckbox('camera_up');">Camera Up</button></td><td align="center"><button class="button" onmousedown="toggleCheckbox('camera_down');" ontouchstart="toggleCheckbox('camera_down');">Camera Down</button></td></tr>
 
 // Функция возвращает html для передачи в браузер
 static esp_err_t index_handler(httpd_req_t *req){
