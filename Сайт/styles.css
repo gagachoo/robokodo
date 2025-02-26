@@ -1,0 +1,57 @@
+body {
+
+    background-color: #000000;
+
+
+
+}
+
+
+
+
+
+@font-face {
+	font-family: 'FontName'; 
+	src: local('FontName'),
+		url(/fonts/Comic_Sans_MS_Pixel.ttf); 
+}
+
+h1 {
+    /* настраиваем внешний вид шрифта */
+    font-family: sans-serif;
+    font-size: 10vw;
+    font-weight: 900;
+    color: #FFFAFA ;
+  
+    /* подстраиваем ширину заголовка под самое длинное слово*/
+    width: -webkit-min-content;
+    width: -moz-min-content;
+    width: min-content;
+  
+    /* делаем автоматические отступы */
+    margin: auto;
+    /* переводим все буквы в заглавные */
+    text-transform: uppercase;
+  }
+
+
+
+  h2 {
+        /* настраиваем внешний вид шрифта */
+        font-family: 
+        font-size: 40px;
+        font-weight: 900;
+        color: #32CD32 ;
+      
+        /* подстраиваем ширину заголовка под самое длинное слово*/
+        width: -webkit-min-content;
+        width: -moz-min-content;
+        width: min-content;
+      
+        /* делаем автоматические отступы */
+        margin: auto;
+        /* переводим все буквы в заглавные */
+        text-transform: uppercase;
+  }
+
+  
